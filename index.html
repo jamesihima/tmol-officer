@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#075A36">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" href="assets/tmo-app-icon.jpg">
+<title>TMO Officer App</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script src="tmo-store.js"></script>
+<style>body{margin:0;background:#E9EDE8;font-family:Urbanist,sans-serif;color:#17251B;-webkit-font-smoothing:antialiased}a{color:#075A36;font-weight:600;text-decoration:none}a:hover{color:#3DBE72}*{box-sizing:border-box}input,button{font-family:Urbanist}input::placeholder{color:#8A968D}</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-wrap:wrap;gap:40px;justify-content:center;align-items:flex-start;padding:{{ pagePad }}">
+  <sc-if value="{{ showAside }}" hint-placeholder-val="{{ true }}">
+    <aside style="width:300px;max-width:100%;display:flex;flex-direction:column;gap:16px;padding-top:12px">
+      <a href="TMO Design System.dc.html" style="font-size:13px">← Design system</a>
+      <div style="font-size:26px;font-weight:800;line-height:1.15">TMO Officer · Park intake</div>
+      <div style="font-size:15px;color:#5C6B60;line-height:1.5">Registers drop-off and ride-along packages, collects payment, issues the waybill QR and assigns drivers — live on the shared system.</div>
+      <div style="background:#fff;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5"><b>Test logins</b><span style="color:#5C6B60">Bisi Olatunji · 0805 441 2290 · PIN 1234. Or activate a new officer with any invite code.</span></div>
+      <a href="TMO Test Console.dc.html" style="background:#075A36;color:#fff;padding:14px 16px;border-radius:14px;font-weight:700;display:flex;justify-content:space-between">Open Test Console <span>→</span></a>
+    </aside>
+  </sc-if>
+
+  <div style="width:{{ fr.w }};height:{{ fr.h }};flex:none;border-radius:{{ fr.r }};background:#17251B;padding:{{ fr.p }};box-shadow:{{ fr.sh }}">
+  <div style="width:100%;height:100%;border-radius:{{ fr.ir }};overflow:hidden;background:#F4F6F3;position:relative;display:flex;flex-direction:column">
+    <div style="height:{{ fr.sb }};overflow:hidden;flex:none;display:{{ fr.sbd }};justify-content:space-between;align-items:center;padding:4px 30px 0;font-weight:700;font-size:15px;background:#17251B;color:#fff"><span>{{ clock }}</span><span style="width:24px;height:11px;border-radius:3px;border:1.5px solid currentColor"></span></div>
+
+    <sc-if value="{{ is.signin }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:1;display:flex;flex-direction:column;min-height:0;background:#17251B;color:#fff">
+        <div style="padding:20px 24px 0;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:center;gap:10px"><img src="assets/logo-mark.png" alt="TMO" style="height:18px"><span style="font-size:12px;font-weight:800;letter-spacing:.1em;padding:4px 8px;border-radius:6px;background:#F9D44B;color:#17251B">OFFICER</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:28px;font-weight:800">{{ pinUi.title }}</span><span style="font-size:15px;color:#C9D3CB;line-height:1.5">{{ pinUi.sub }}</span></div>
+          <sc-if value="{{ pinUi.askPhone }}" hint-placeholder-val="{{ true }}"><input value="{{ a.phone }}" onInput="{{ on.phone }}" placeholder="Your phone number" inputmode="tel" style="height:52px;border:0;border-radius:14px;background:#22382A;color:#fff;padding:0 16px;font-size:17px;font-weight:700;outline:none"></sc-if>
+          <div style="display:flex;gap:14px;justify-content:center;padding:6px 0"><sc-for list="{{ pinDots }}" as="d" hint-placeholder-count="4"><span style="width:18px;height:18px;border-radius:50%;border:2px solid #3DBE72;background:{{ d }}"></span></sc-for></div>
+          <span style="text-align:center;font-size:14px;font-weight:700;color:#F9D44B;min-height:20px">{{ err }}</span>
+        </div>
+        <div style="margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:8px 16px 8px"><sc-for list="{{ keys }}" as="k" hint-placeholder-count="12"><button onClick="{{ k.press }}" style="height:58px;border:0;border-radius:14px;font-size:24px;font-weight:700;cursor:pointer;color:#fff;background:{{ k.bg }}">{{ k.l }}</button></sc-for></div>
+        <div style="padding:0 24px 26px;display:flex;justify-content:space-between"><sc-for list="{{ pinLinks }}" as="l" hint-placeholder-count="2"><button onClick="{{ l.go }}" style="border:0;background:none;color:#3DBE72;font-weight:800;font-size:14px;cursor:pointer;height:40px">{{ l.l }}</button></sc-for></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.activate }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;display:flex;flex-direction:column;min-height:0;background:#fff">
+        <div style="padding:6px 16px 0"><button onClick="{{ toSignin }}" style="width:44px;height:44px;border-radius:50%;border:0;background:#F4F6F3;font-size:20px;cursor:pointer">←</button></div>
+        <div style="flex:1;overflow-y:auto;padding:12px 24px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:28px;font-weight:800">Activate your account</span><span style="font-size:15px;color:#5C6B60;line-height:1.5">Enter your details and the invite code from Operations. In testing, any code works.</span></div>
+          <input value="{{ a.name }}" onInput="{{ on.name }}" placeholder="Full name" style="height:52px;border:1.5px solid #E2E7E1;border-radius:14px;padding:0 16px;font-size:16px;font-weight:600;outline:none">
+          <input value="{{ a.phone }}" onInput="{{ on.phone }}" placeholder="Phone number" inputmode="tel" style="height:52px;border:1.5px solid #E2E7E1;border-radius:14px;padding:0 16px;font-size:16px;font-weight:600;outline:none">
+          <span style="font-size:14px;font-weight:600">Park</span>
+          <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ parks }}" as="p" hint-placeholder-count="4"><button onClick="{{ p.pick }}" style="height:40px;padding:0 14px;border-radius:999px;font-weight:700;font-size:14px;cursor:pointer;border:1.5px solid {{ p.bd }};background:{{ p.bg }};color:{{ p.fg }}">{{ p.l }}</button></sc-for></div>
+          <input value="{{ a.invite }}" onInput="{{ on.invite }}" placeholder="Invite code" style="height:52px;border:1.5px solid #E2E7E1;border-radius:14px;padding:0 16px;font-size:16px;font-weight:600;outline:none;font-family:'IBM Plex Mono';letter-spacing:.15em">
+          <sc-if value="{{ invited }}" hint-placeholder-val="{{ false }}"><div style="background:#E6F6EC;border-radius:14px;padding:12px 14px;font-size:14px;color:#075A36;font-weight:700">{{ invited }}</div></sc-if>
+          <span style="font-size:13px;font-weight:700;color:#C8412F">{{ err }}</span>
+        </div>
+        <div style="padding:12px 24px 30px"><button onClick="{{ submitActivate }}" style="width:100%;height:54px;border:0;border-radius:14px;background:#075A36;color:#fff;font-weight:800;font-size:16px;cursor:pointer">Continue · create PIN</button></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.shift }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;display:flex;flex-direction:column;min-height:0">
+        <div style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:14px;font-weight:700;color:#075A36">Hello, {{ me.first }}</span><span style="font-size:28px;font-weight:800">Start your shift</span><span style="font-size:14px;color:#5C6B60">{{ me.park }}</span></div>
+          <sc-for list="{{ devices }}" as="d" hint-placeholder-count="2"><div style="background:#fff;border-radius:18px;padding:14px 16px;display:flex;gap:14px;align-items:center"><div style="width:44px;height:44px;border-radius:12px;background:#17251B;color:#fff;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;flex:none">{{ d.icon }}</div><div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-weight:800;font-size:15px">{{ d.name }}</span><span style="font-size:13px;font-weight:600;color:{{ d.c }}">{{ d.sub }}</span></div><button onClick="{{ d.pair }}" style="height:38px;padding:0 14px;border-radius:10px;font-weight:800;font-size:13px;cursor:pointer;border:1.5px solid #075A36;background:{{ d.bg }};color:{{ d.fg }}">{{ d.btn }}</button></div></sc-for>
+          <sc-for list="{{ checks }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.toggle }}" style="text-align:left;cursor:pointer;border:0;background:#fff;border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:center"><span style="width:22px;height:22px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:800;background:{{ c.bg }};border:2px solid #075A36">{{ c.tick }}</span><span style="font-size:15px;font-weight:600;color:#17251B">{{ c.l }}</span></button></sc-for>
+        </div>
+        <div style="padding:12px 20px 30px"><button onClick="{{ startShift }}" style="width:100%;height:54px;border:0;border-radius:14px;font-weight:800;font-size:16px;cursor:pointer;background:{{ shiftCta.bg }};color:{{ shiftCta.fg }}">Start shift</button></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.queue }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column">
+        <div style="background:#17251B;color:#fff;padding:8px 20px 20px;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:10px"><img src="assets/logo-mark.png" alt="TMO" style="height:16px"><span style="font-size:12px;font-weight:800;letter-spacing:.1em;padding:4px 8px;border-radius:6px;background:#F9D44B;color:#17251B">OFFICER</span></div><button onClick="{{ toEnd }}" style="height:34px;padding:0 12px;border:1.5px solid #3DBE72;border-radius:10px;background:transparent;color:#fff;font-weight:800;font-size:13px;cursor:pointer">End shift</button></div>
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;color:#3DBE72;font-weight:700">{{ me.park }} · {{ me.name }}</span><span style="font-size:26px;font-weight:800">Today’s intake</span></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"><sc-for list="{{ stats }}" as="x" hint-placeholder-count="3"><div style="background:#22382A;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:2px"><span style="font-size:22px;font-weight:800;color:{{ x.c }}">{{ x.v }}</span><span style="font-size:12px;color:#C9D3CB;font-weight:600">{{ x.l }}</span></div></sc-for></div>
+        </div>
+        <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+          <button onClick="{{ startNew }}" style="height:58px;border:0;border-radius:16px;background:#075A36;color:#fff;font-weight:800;font-size:17px;cursor:pointer">+ New shipment</button>
+          <div style="display:flex;gap:6px"><sc-for list="{{ filters }}" as="f" hint-placeholder-count="3"><button onClick="{{ f.go }}" style="height:36px;padding:0 12px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer;border:1.5px solid {{ f.bd }};background:{{ f.bg }};color:{{ f.fg }}">{{ f.l }}</button></sc-for></div>
+          <sc-if value="{{ noQueue }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;color:#5C6B60;padding:8px 0">Nothing here yet.</span></sc-if>
+          <sc-for list="{{ queue }}" as="q" hint-placeholder-count="2">
+            <div style="background:#fff;border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'IBM Plex Mono';font-size:13px;font-weight:600;color:#5C6B60">{{ q.code }}</span><span style="padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;background:{{ q.bg }};color:{{ q.fg }}">{{ q.status }}</span></div>
+              <span style="font-weight:800;font-size:16px">→ {{ q.to }} · {{ q.recv }}</span>
+              <span style="font-size:13px;color:#5C6B60">{{ q.meta }}</span>
+              <sc-if value="{{ q.act }}" hint-placeholder-val="{{ false }}"><button onClick="{{ q.go }}" style="height:42px;border:1.5px solid #075A36;border-radius:12px;background:#fff;color:#075A36;font-weight:800;font-size:14px;cursor:pointer">{{ q.act }}</button></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ inFlow }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:none;padding:6px 16px 8px;display:flex;align-items:center;gap:12px"><button onClick="{{ back }}" style="width:44px;height:44px;border-radius:50%;border:0;background:#fff;font-size:20px;cursor:pointer">←</button><div style="flex:1;display:flex;flex-direction:column"><span style="font-size:12px;font-weight:700;letter-spacing:.1em;color:#5C6B60">STEP {{ stepN }} OF 5 · {{ typeLabel }}</span><span style="font-size:20px;font-weight:800">{{ stepTitle }}</span></div></div>
+    </sc-if>
+
+    <sc-if value="{{ is.type }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto;padding:12px 20px;display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ types }}" as="t" hint-placeholder-count="2"><button onClick="{{ t.pick }}" style="text-align:left;cursor:pointer;background:#fff;border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:8px;border:2px solid {{ t.bd }}"><span style="width:52px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;background:{{ t.ib }};color:#17251B">{{ t.icon }}</span><span style="font-size:19px;font-weight:800;color:#17251B">{{ t.l }}</span><span style="font-size:14px;color:#5C6B60;line-height:1.45">{{ t.s }}</span></button></sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.inspect }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto;padding:12px 20px;display:flex;flex-direction:column;gap:14px">
+        <label style="border-radius:20px;height:170px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:1.5px dashed #C9D3CB;cursor:pointer;overflow:hidden;position:relative">
+          <input type="file" accept="image/*" capture="environment" onChange="{{ onPhoto }}" style="display:none">
+          <sc-if value="{{ d.photo }}" hint-placeholder-val="{{ false }}"><img src="{{ d.photo }}" alt="Package" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></sc-if>
+          <sc-if value="{{ noPhoto }}" hint-placeholder-val="{{ true }}"><span style="height:44px;padding:0 18px;border-radius:12px;background:#17251B;color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center">Take package photo</span><span style="font-size:13px;color:#5C6B60">Required for every shipment</span></sc-if>
+        </label>
+        <sc-if value="{{ noPhoto }}" hint-placeholder-val="{{ true }}"><button onClick="{{ samplePhoto }}" style="align-self:flex-start;border:0;background:none;color:#075A36;font-weight:800;font-size:13px;cursor:pointer;padding:0">No camera? Use a sample photo</button></sc-if>
+        <div style="background:#17251B;color:#fff;border-radius:20px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px"><div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-size:13px;color:#C9D3CB;font-weight:600">Scale · TMO-SC-07 (kg)</span><input value="{{ d.kg }}" onInput="{{ on.kg }}" placeholder="0.0" inputmode="decimal" style="width:100%;background:transparent;border:0;outline:none;color:#fff;font-size:36px;font-weight:800;padding:0"></div><button onClick="{{ readScale }}" style="height:44px;padding:0 16px;border:0;border-radius:12px;background:#3DBE72;color:#073D24;font-weight:800;font-size:14px;cursor:pointer">Read scale</button></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ cats }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.pick }}" style="height:38px;padding:0 12px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer;border:1.5px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }}">{{ c.l }}</button></sc-for></div>
+        <input value="{{ d.desc }}" onInput="{{ on.desc }}" placeholder="Description, e.g. 2 cartons tomato paste" style="height:52px;border:1.5px solid #E2E7E1;border-radius:14px;padding:0 16px;font-size:16px;font-weight:600;outline:none;background:#fff">
+        <input value="{{ d.seal }}" onInput="{{ on.seal }}" placeholder="Seal number" style="height:52px;border:1.5px solid #E2E7E1;border-radius:14px;padding:0 16px;font-size:16px;font-weight:600;outline:none;background:#fff;font-family:'IBM Plex Mono'">
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.people }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto;padding:12px 20px;display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:16px;font-weight:800">Sender</span>
+        <input value="{{ d.sPhone }}" onInput="{{ on.sPhone }}" placeholder="Sender phone" inputmode="tel" style="height:52px;border:1.5px solid #E2E7E1;border-radius:14px;padding:0 16px;font-size:16px;font-weight:600;outline:none;background:#fff">
+        <sc-if value="{{ senderHit }}" hint-placeholder-val="{{ false }}"><div style="background:#E6F6EC;border-radius:12px;padding:10px 14px;font-size:13px;color:#075A36;font-weight:700">{{ senderHit }}</div></sc-if>
+        <input value="{{ d.sName }}" onInput="{{ on.sName }}" placeholder="Sender full name" style="height:52px;border:1.5px solid #E2E7E1;border-radius:14px;padding:0 16px;font-size:16px;font-weight:600;outline:none;background:#fff">
+        <span style="font-size:16px;font-weight:800;margin-top:4px">Receiver</span>
+        <input value="{{ d.rName }}" onInput="{{ on.rName }}" placeholder="Receiver full name" style="height:52px;border:1.5px solid #E2E7E1;border-radius:14px;padding:0 16px;font-size:16px;font-weight:600;outline:none;background:#fff">
+        <input value="{{ d.rPhone }}" onInput="{{ on.rPhone }}" placeholder="Receiver phone" inputmode="tel" style="height:52px;border:1.5px solid #E2E7E1;border-radius:14px;padding:0 16px;font-size:16px;font-weight:600;outline:none;background:#fff">
+        <span style="font-size:16px;font-weight:800;margin-top:4px">Destination</span>
+        <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ dests }}" as="x" hint-placeholder-count="6"><button onClick="{{ x.pick }}" style="height:40px;padding:0 14px;border-radius:999px;font-weight:700;font-size:14px;cursor:pointer;border:1.5px solid {{ x.bd }};background:{{ x.bg }};color:{{ x.fg }}">{{ x.l }}</button></sc-for></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.price }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto;padding:12px 20px;display:flex;flex-direction:column;gap:14px">
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:600">Declared item value (₦)</span><input value="{{ d.value }}" onInput="{{ on.value }}" inputmode="numeric" style="height:52px;border:1.5px solid #E2E7E1;border-radius:14px;padding:0 16px;font-size:16px;font-weight:700;outline:none;background:#fff"></label>
+        <div style="background:#fff;border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;font-size:15px"><sc-for list="{{ pr.lines }}" as="l" hint-placeholder-count="6"><div style="display:flex;justify-content:space-between"><span style="color:#5C6B60">{{ l.k }}</span><span style="font-weight:700">{{ l.v }}</span></div></sc-for><div style="height:1px;background:#E2E7E1"></div><div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-weight:800">Total</span><span style="font-size:32px;font-weight:800">{{ pr.totalF }}</span></div></div>
+        <div style="display:flex;gap:10px;align-items:center;font-size:13px;color:#5C6B60;font-weight:600"><span style="padding:4px 8px;border-radius:6px;background:#E6F6EC;color:#075A36;font-weight:800">SYSTEM PRICE</span>Live rates from Admin. No manual override.</div>
+        <sc-if value="{{ isRide }}" hint-placeholder-val="{{ false }}"><div style="background:#FDF7D8;border-radius:14px;padding:12px 14px;font-size:14px">Passenger fare is charged separately at the ticket counter.</div></sc-if>
+        <button onClick="{{ toggleDecl }}" style="text-align:left;cursor:pointer;border:0;background:#fff;border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start"><span style="width:22px;height:22px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:800;background:{{ decl.bg }};border:2px solid #075A36">{{ decl.tick }}</span><span style="font-size:14px;line-height:1.45">Customer has read the prohibited goods list and accepts the declaration.</span></button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.pay }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto;padding:12px 20px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0"><span style="font-size:14px;color:#5C6B60;font-weight:600">Collect from {{ cur.sender }} · {{ cur.code }}</span><span style="font-size:46px;font-weight:800;letter-spacing:-.02em">{{ cur.dueF }}</span></div>
+        <sc-for list="{{ methods }}" as="m" hint-placeholder-count="3"><button onClick="{{ m.pick }}" style="text-align:left;cursor:pointer;background:#fff;border-radius:18px;padding:14px 16px;display:flex;gap:14px;align-items:center;border:2px solid {{ m.bd }};opacity:{{ m.op }}"><div style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;background:{{ m.ib }};color:{{ m.if }};flex:none">{{ m.icon }}</div><div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-weight:800;font-size:15px;color:#17251B">{{ m.name }}</span><span style="font-size:13px;color:#5C6B60">{{ m.sub }}</span></div></button></sc-for>
+        <div style="border-radius:16px;padding:14px 16px;font-size:14px;font-weight:700;display:flex;gap:10px;align-items:center;background:{{ payState.bg }};color:{{ payState.fg }}"><span style="width:10px;height:10px;border-radius:50%;background:currentColor;flex:none"></span>{{ payState.t }}</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.done }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto;padding:12px 20px;display:flex;flex-direction:column;gap:12px;align-items:center">
+        <span style="font-size:24px;font-weight:800">Waybill issued</span>
+        <div style="width:100%;background:#fff;border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px;align-items:center">
+          <img src="{{ cur.qr }}" alt="Waybill QR" style="width:190px;height:190px;image-rendering:pixelated">
+          <span style="font-family:'IBM Plex Mono';font-size:22px;font-weight:600;letter-spacing:.05em">{{ cur.code }}</span>
+          <div style="width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;font-size:14px;border-top:1.5px dashed #E2E7E1;padding-top:12px">
+            <div style="display:flex;flex-direction:column"><span style="font-size:12px;color:#5C6B60;font-weight:600">TO</span><b>{{ cur.to }}</b></div>
+            <div style="display:flex;flex-direction:column"><span style="font-size:12px;color:#5C6B60;font-weight:600">RECEIVER</span><b>{{ cur.recv }}</b></div>
+            <div style="display:flex;flex-direction:column"><span style="font-size:12px;color:#5C6B60;font-weight:600">WEIGHT</span><b>{{ cur.kg }} kg</b></div>
+            <div style="display:flex;flex-direction:column"><span style="font-size:12px;color:#5C6B60;font-weight:600">PAID</span><b>{{ cur.paidF }}</b></div>
+          </div>
+        </div>
+        <span style="font-size:13px;color:#5C6B60;text-align:center;line-height:1.45">Stick this label on the package. The driver scans it to take custody.</span>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.endshift }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;display:flex;flex-direction:column;min-height:0">
+        <div style="padding:6px 16px 10px;display:flex;align-items:center;gap:12px"><button onClick="{{ toQueue }}" style="width:44px;height:44px;border-radius:50%;border:0;background:#fff;font-size:20px;cursor:pointer">←</button><span style="font-size:20px;font-weight:800">End of shift</span></div>
+        <div style="flex:1;overflow-y:auto;padding:8px 20px;display:flex;flex-direction:column;gap:14px">
+          <div style="background:#17251B;color:#fff;border-radius:22px;padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;color:#C9D3CB">Shipments</span><span style="font-size:30px;font-weight:800">{{ endSum.n }}</span></div><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;color:#C9D3CB">Collected</span><span style="font-size:30px;font-weight:800">{{ endSum.total }}</span></div></div>
+          <div style="background:#fff;border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;font-size:15px"><span style="font-size:12px;font-weight:700;letter-spacing:.1em;color:#5C6B60">BY CHANNEL</span><sc-for list="{{ endSum.lines }}" as="l" hint-placeholder-count="3"><div style="display:flex;justify-content:space-between"><span style="color:#5C6B60">{{ l.k }}</span><b>{{ l.v }}</b></div></sc-for></div>
+          <div style="border-radius:16px;padding:12px 16px;font-size:14px;line-height:1.45;font-weight:600;background:{{ endSum.bg }};color:{{ endSum.fg }}">{{ endSum.t }}</div>
+        </div>
+        <div style="padding:12px 20px 30px"><button onClick="{{ endShift }}" style="width:100%;height:54px;border:0;border-radius:14px;background:#075A36;color:#fff;font-weight:800;font-size:16px;cursor:pointer">Submit report &amp; sign out</button></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ cta }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:none;padding:10px 20px 28px;display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:700;color:#C8412F;text-align:center">{{ err }}</span><button onClick="{{ cta.go }}" style="width:100%;height:54px;border:0;border-radius:14px;font-weight:800;font-size:16px;cursor:pointer;background:{{ cta.bg }};color:{{ cta.fg }}">{{ cta.l }}</button><sc-if value="{{ cta2 }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cta2.go }}" style="height:44px;border:0;background:none;color:#075A36;font-weight:800;font-size:14px;cursor:pointer">{{ cta2.l }}</button></sc-if></div>
+    </sc-if>
+
+    <sc-if value="{{ assignOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeAssign }}" style="position:absolute;inset:0;background:rgba(23,37,27,.45);display:flex;align-items:flex-end;z-index:5">
+        <div onClick="{{ stop }}" style="width:100%;background:#fff;border-radius:28px 28px 0 0;padding:10px 20px 34px;display:flex;flex-direction:column;gap:8px;max-height:80%;overflow-y:auto">
+          <div style="width:40px;height:5px;border-radius:3px;background:#E2E7E1;align-self:center;margin-bottom:8px"></div>
+          <span style="font-size:20px;font-weight:800">Assign {{ assignCode }}</span>
+          <span style="font-size:14px;color:#5C6B60;margin-bottom:4px">Approved drivers · on duty first</span>
+          <sc-for list="{{ drivers }}" as="x" hint-placeholder-count="2"><button onClick="{{ x.pick }}" style="border:1.5px solid #E2E7E1;background:#fff;text-align:left;cursor:pointer;padding:14px;border-radius:16px;display:flex;gap:12px;align-items:center"><div style="width:44px;height:44px;border-radius:50%;background:{{ x.bg }};color:#17251B;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none">{{ x.ini }}</div><div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-weight:800;font-size:15px;color:#17251B">{{ x.name }}</span><span style="font-size:13px;color:#5C6B60">{{ x.sub }}</span></div><span style="font-family:'IBM Plex Mono';font-size:12px;font-weight:600;color:#5C6B60">{{ x.plate }}</span></button></sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const FLOW=['type','inspect','people','price','pay','done'];
+const TITLES={type:'Shipment type',inspect:'Inspect & weigh',people:'Sender & receiver',price:'System price',pay:'Payment',done:'Waybill & hand over'};
+const BLANK={type:'drop',photo:'',kg:'',cat:0,desc:'',seal:'',sPhone:'',sName:'',rName:'',rPhone:'',dest:-1,value:'20000',decl:false};
+class Component extends DCLogic {
+  state={ready:false,screen:'signin',pinMode:'signin',pin:'',newPin:'',err:'',name:'',phone:'',park:0,invite:'',scale:false,pos:false,checks:[false,false,false],d:Object.assign({},BLANK),method:'POS',cur:null,waiting:false,assign:null,filter:'assign'};
+  componentDidMount(){const boot=()=>{const T=window.TMO;if(!T)return setTimeout(boot,40);const u=this.me();this.setState({ready:true,screen:u?(u.onShift?'queue':'shift'):'signin',phone:u?u.phone:''});this.unsub=T.subscribe(()=>this.forceUpdate());};boot();this._c=setInterval(()=>this.forceUpdate(),30000);}
+  componentWillUnmount(){this.unsub&&this.unsub();clearInterval(this._c);}
+  me(){const T=window.TMO;return T?T.user(T.db,T.getSession('officer')):null;}
+  set(k,v){this.setState({d:Object.assign({},this.state.d,{[k]:v}),err:''});}
+  renderVals(){
+    const T=window.TMO,s=this.state;
+    if(!T||!s.ready)return {is:{},pagePad:'40px 24px',showAside:true,clock:''};
+    const db=T.db,me=this.me(),sc=s.screen,d=s.d,nm=me?me.name:'';
+    const go=(screen,x)=>this.setState(Object.assign({screen,err:''},x||{}));
+    // PIN pad
+    const finishPin=p=>{
+      if(s.pinMode==='signin'){const u=T.userByPhone(db,s.phone,'officer');if(!u)return this.setState({pin:'',err:'No officer with this number. Activate first.'});if(u.pin&&u.pin!==p)return this.setState({pin:'',err:'Incorrect PIN. Use “Forgot PIN” to reset.'});
+        T.setSession('officer',u.id);T.update(x=>T.log(x,u.name,'officer','signed in at '+u.park));go(u.onShift?'queue':'shift',{pin:''});}
+      else if(s.pinMode==='create')this.setState({newPin:p,pin:'',pinMode:'confirm',err:''});
+      else{if(p!==s.newPin)return this.setState({pin:'',pinMode:'create',err:'PINs didn’t match — try again'});let id;
+        T.update(x=>{let u=T.userByPhone(x,s.phone,'officer');if(!u){u={id:T.uid('u'),role:'officer',name:s.name.trim()||'New Officer',phone:T.norm(s.phone),park:T.PARKS[s.park],staffId:'CMS-OF-'+T.rnd(4),createdAt:Date.now()};x.users.push(u);}
+          if(s.name.trim())u.name=s.name.trim();u.park=u.park||T.PARKS[s.park];u.pin=p;u.status='active';id=u.id;T.log(x,u.name,'officer','activated officer account · '+u.park);});
+        T.setSession('officer',id);go('shift',{pin:'',pinMode:'signin'});}};
+    const press=k=>()=>{if(k==='⌫')return this.setState({pin:s.pin.slice(0,-1),err:''});if(!k)return;if(s.pinMode==='signin'&&T.norm(s.phone).length!==11)return this.setState({err:'Enter your phone number first'});const p=(s.pin+k).slice(0,4);this.setState({pin:p,err:''});if(p.length===4)setTimeout(()=>finishPin(p),200);};
+    const PU={signin:{title:'Sign in',sub:'Phone number and 4-digit PIN.',askPhone:true},create:{title:'Create a PIN',sub:'Any 4 digits. You’ll use it every shift.',askPhone:false},confirm:{title:'Confirm your PIN',sub:'Enter the same 4 digits again.',askPhone:false}}[s.pinMode];
+    const invitedU=T.userByPhone(db,s.phone,'officer');
+    // draft & price
+    const dest=T.DESTS[d.dest],kg=parseFloat(d.kg)||0;
+    const pr=T.price(db,{kg:kg||0.5,dest:dest?dest.n:T.DESTS[0].n,value:d.value});
+    const sReg=T.userByPhone(db,d.sPhone,'customer');
+    const cur=T.ship(db,s.cur);
+    const due=cur?T.due(cur):0;
+    const ok={type:true,inspect:d.photo&&kg>0,people:T.norm(d.sPhone).length===11&&d.sName.trim()&&d.rName.trim()&&T.norm(d.rPhone).length===11&&d.dest>=0,price:d.decl}[sc];
+    const createShip=()=>{let code;T.update(x=>{const sh=T.create(x,{channel:d.type,park:me.park,officerId:me.id,officerName:me.name,senderName:d.sName.trim(),senderPhone:T.norm(d.sPhone),receiverName:d.rName.trim(),receiverPhone:T.norm(d.rPhone),pickup:me.park,dest:dest.n,category:T.CATS[d.cat],desc:d.desc||T.CATS[d.cat],seal:d.seal,kg,photo:d.photo,declaredValue:Number(d.value)||0,estPrice:pr.total,finalPrice:pr.total},me.name,'officer');code=sh.code;});go('pay',{cur:code,waiting:false});};
+    const doPay=()=>{
+      if(!cur)return;
+      if(s.method==='Rider app'){if(!sReg&&!T.userByPhone(db,cur.senderPhone,'customer'))return this.setState({err:'Sender has no TMO Rider account. Use POS or TMO Card.'});T.update(x=>{const sh=T.ship(x,cur.code);sh.payRequest=true;T.note(x,sh,'Payment requested',nm,'officer',T.fmt(T.due(sh))+' via TMO Rider app');T.sms(x,sh.senderPhone,'TMO: '+nm+' at '+sh.park+' requests '+T.fmt(T.due(sh))+' for '+sh.code+'. Open TMO Rider to pay.');});return this.setState({waiting:true});}
+      if(s.method==='POS'){this.setState({waiting:true});setTimeout(()=>{T.update(x=>{const sh=T.ship(x,cur.code);if(T.due(sh)>0)T.pay(x,sh,T.due(sh),'POS · TMO-POS-03',nm,'officer');});this.setState({waiting:false});},1300);return;}
+      let r;T.update(x=>{const sh=T.ship(x,cur.code);r=T.pay(x,sh,T.due(sh),'TMO Card',nm,'officer');});if(!r)this.setState({err:'TMO Card declined — sender not registered or low balance.'});};
+    let cta=null,cta2=null;
+    if(FLOW.includes(sc)){
+      if(sc==='pay')cta=due<=0&&cur?{l:'Issue waybill',go:()=>go('done'),bg:'#075A36',fg:'#fff'}:{l:s.waiting?'Waiting for confirmation…':'Collect '+T.fmt(due)+' · '+s.method,go:s.waiting?()=>{}:doPay,bg:s.waiting?'#E2E7E1':'#075A36',fg:s.waiting?'#8A968D':'#fff'};
+      else if(sc==='done'){cta={l:'Assign to driver now',go:()=>this.setState({assign:cur.code}),bg:'#075A36',fg:'#fff'};cta2={l:'Back to queue',go:()=>go('queue',{d:Object.assign({},BLANK)})};}
+      else cta={l:sc==='price'?'Create shipment & collect '+pr.totalF:'Continue',go:()=>{if(!ok)return this.setState({err:sc==='inspect'?'Photo and weight are required':sc==='people'?'Fill sender, receiver (11-digit phones) and destination':'Customer must accept the declaration'});if(sc==='price')return createShip();go(FLOW[FLOW.indexOf(sc)+1]);},bg:ok?'#075A36':'#E2E7E1',fg:ok?'#fff':'#8A968D'};
+    }
+    // queue
+    const today=new Date();today.setHours(0,0,0,0);
+    const parkShips=me?db.shipments.filter(x=>x.channel!=='online'&&x.park===me.park):[];
+    const toAssign=parkShips.filter(x=>x.status==='Accepted'&&!x.driverId);
+    const unpaid=parkShips.filter(x=>x.status==='Created');
+    const list=s.filter==='assign'?toAssign:s.filter==='unpaid'?unpaid:parkShips.filter(x=>x.createdAt>=today.getTime());
+    const queue=list.map(x=>{const st=T.display(x),c=T.chip(st),dr=x.driverId?T.user(db,x.driverId):null;return {code:x.code,status:st,bg:c[0],fg:c[1],to:T.dest(x.dest).s,recv:x.receiverName,meta:x.kg+' kg · '+T.fmt(x.finalPrice)+(dr?' · '+dr.name:'')+' · '+T.time(x.createdAt),act:x.status==='Accepted'&&!x.driverId?'Assign to driver':x.status==='Created'?'Resume payment':'',go:()=>x.status==='Created'?go('pay',{cur:x.code,waiting:false}):this.setState({assign:x.code})};});
+    const drivers=db.users.filter(u=>u.role==='driver'&&u.status==='active').sort((a,b)=>(b.onDuty?1:0)-(a.onDuty?1:0)).map(u=>({ini:u.name.split(' ').map(w=>w[0]).join('').slice(0,2),name:u.name,sub:(u.onDuty?'On duty':'Off duty')+' · '+(u.vehicle||'')+' · '+db.shipments.filter(x=>x.driverId===u.id&&!['Closed','Delivered','Cancelled'].includes(x.status)).length+' active jobs',plate:u.plate||'',bg:u.onDuty?'#3DBE72':'#E2E7E1',pick:()=>{T.update(x=>{const sh=T.ship(x,s.assign);sh.driverId=u.id;T.step(x,sh,'Assigned',nm,'officer','to '+u.name+' · '+(u.plate||''));T.sms(x,u.phone,'TMO Driver: New job '+sh.code+' — collect at '+sh.park+' for '+T.dest(sh.dest).s+'.');});this.setState({assign:null});if(sc==='done')go('queue',{d:Object.assign({},BLANK)});}}));
+    const mine=me?db.shipments.filter(x=>x.officerId===me.id&&x.createdAt>=today.getTime()):[];
+    const pays=[].concat(...mine.map(x=>x.payments||[]));const by={};pays.forEach(p=>{const k=p.method.split(' ·')[0];by[k]=(by[k]||0)+p.amount;});
+    const allChecks=s.scale&&s.pos&&s.checks.every(Boolean);
+    return {
+      pagePad:T.embed||T.device?'0':'40px 24px',showAside:!T.embed&&!T.device,fr:T.frame(),clock:T.time(Date.now()),
+      is:Object.fromEntries(['signin','activate','shift','queue','endshift'].concat(FLOW).map(k=>[k,sc===k])),err:s.err,
+      pinUi:PU,pinDots:[0,1,2,3].map(i=>i<s.pin.length?'#3DBE72':'transparent'),
+      keys:['1','2','3','4','5','6','7','8','9','','0','⌫'].map(k=>({l:k,press:press(k),bg:k?'#22382A':'transparent'})),
+      pinLinks:s.pinMode==='signin'?[{l:'Activate account',go:()=>go('activate',{pin:''})},{l:'Forgot PIN?',go:()=>{if(!T.userByPhone(db,s.phone,'officer'))return this.setState({err:'Enter your registered phone first'});this.setState({pinMode:'create',pin:'',err:''});}}]:[{l:'Cancel',go:()=>this.setState({pinMode:'signin',pin:'',err:''})},{l:'',go:()=>{}}],
+      a:{name:s.name,phone:s.phone,invite:s.invite},
+      on:{name:e=>this.setState({name:e.target.value}),phone:e=>this.setState({phone:e.target.value,err:''}),invite:e=>this.setState({invite:e.target.value.toUpperCase()}),
+        kg:e=>this.set('kg',e.target.value.replace(/[^\d.]/g,'')),desc:e=>this.set('desc',e.target.value),seal:e=>this.set('seal',e.target.value),
+        sPhone:e=>{const v=e.target.value,u=T.userByPhone(db,v,'customer');this.setState({d:Object.assign({},s.d,{sPhone:v},u&&!s.d.sName?{sName:u.name}:{}),err:''});},sName:e=>this.set('sName',e.target.value),rName:e=>this.set('rName',e.target.value),rPhone:e=>this.set('rPhone',e.target.value),value:e=>this.set('value',e.target.value.replace(/\D/g,''))},
+      toSignin:()=>go('signin',{pinMode:'signin'}),
+      parks:T.PARKS.map((p,i)=>({l:p,pick:()=>this.setState({park:i}),bg:i===s.park?'#075A36':'#fff',fg:i===s.park?'#fff':'#17251B',bd:i===s.park?'#075A36':'#E2E7E1'})),
+      invited:invitedU?(invitedU.status==='invited'?'Invite found: '+invitedU.name+' · '+invitedU.park:'This number already has an officer account — you’ll reset its PIN.'):'',
+      submitActivate:()=>{if(!s.name.trim()&&!invitedU)return this.setState({err:'Enter your name'});if(T.norm(s.phone).length!==11)return this.setState({err:'Enter an 11-digit phone'});if(!s.invite.trim())return this.setState({err:'Enter any invite code'});go('signin',{pinMode:'create',pin:''});},
+      me:{name:nm,first:nm.split(' ')[0],park:me?me.park:''},
+      devices:[{k:'scale',icon:'SCALE',name:'Park scale · TMO-SC-07'},{k:'pos',icon:'POS',name:'POS terminal · TMO-POS-03'}].map(x=>({icon:x.icon,name:x.name,sub:s[x.k]?'Connected':'Not connected',c:s[x.k]?'#075A36':'#8A968D',btn:s[x.k]?'Paired':'Pair',bg:s[x.k]?'#075A36':'#fff',fg:s[x.k]?'#fff':'#075A36',pair:()=>this.setState({[x.k]:true})})),
+      checks:['Prohibited goods list reviewed','Seal stock counted','Label printer loaded'].map((l,i)=>({l,bg:s.checks[i]?'#075A36':'#fff',tick:s.checks[i]?'✓':'',toggle:()=>{const c=s.checks.slice();c[i]=!c[i];this.setState({checks:c});}})),
+      shiftCta:{bg:allChecks?'#075A36':'#E2E7E1',fg:allChecks?'#fff':'#8A968D'},
+      startShift:()=>{if(!allChecks)return;T.update(x=>{const u=T.user(x,me.id);u.onShift=true;T.log(x,u.name,'officer','started shift at '+u.park);});go('queue');},
+      stats:[{l:'Today',v:parkShips.filter(x=>x.createdAt>=today.getTime()).length,c:'#fff'},{l:'Collected',v:T.fmt(pays.reduce((a,p)=>a+p.amount,0)),c:'#fff'},{l:'To assign',v:toAssign.length,c:'#F9D44B'}],
+      filters:[['assign','To assign ('+toAssign.length+')'],['unpaid','Unpaid ('+unpaid.length+')'],['all','All today']].map(f=>({l:f[1],go:()=>this.setState({filter:f[0]}),bg:s.filter===f[0]?'#17251B':'#fff',fg:s.filter===f[0]?'#fff':'#17251B',bd:s.filter===f[0]?'#17251B':'#E2E7E1'})),
+      queue,noQueue:queue.length===0,
+      startNew:()=>go('type',{d:Object.assign({},BLANK),cur:null}),toEnd:()=>go('endshift'),toQueue:()=>go('queue'),
+      inFlow:FLOW.includes(sc),stepN:Math.min(5,FLOW.indexOf(sc)+1),stepTitle:TITLES[sc]||'',typeLabel:d.type==='ride'?'Passenger package':'Drop-off',isRide:d.type==='ride',
+      back:()=>{const i=FLOW.indexOf(sc);if(sc==='pay'||sc==='done'||i<=0)return go('queue');go(FLOW[i-1]);},
+      types:[{k:'ride',icon:'RIDE',l:'Passenger package',s:'Passenger travels with a chargeable item on the CMS bus. Fee is separate from the fare.',ib:'#F9D44B'},{k:'drop',icon:'DROP',l:'Drop-off shipment',s:'Sender leaves the package; it moves on an approved CMS vehicle.',ib:'#E6F6EC'}].map(t=>Object.assign(t,{pick:()=>this.set('type',t.k),bd:d.type===t.k?'#075A36':'transparent'})),
+      d:{photo:d.photo,kg:d.kg,desc:d.desc,seal:d.seal,sPhone:d.sPhone,sName:d.sName,rName:d.rName,rPhone:d.rPhone,value:d.value},noPhoto:!d.photo,
+      onPhoto:e=>{const f=e.target.files&&e.target.files[0];if(f)T.photo(f).then(u=>this.set('photo',u));},
+      samplePhoto:()=>{const c=document.createElement('canvas');c.width=320;c.height=200;const x=c.getContext('2d');x.fillStyle='#C9A26B';x.fillRect(0,0,320,200);x.fillStyle='#A88350';x.fillRect(0,90,320,20);x.fillStyle='#fff';x.font='bold 16px sans-serif';x.fillText('SAMPLE PACKAGE · '+T.time(Date.now()),16,180);this.set('photo',c.toDataURL('image/jpeg',.7));},
+      readScale:()=>this.set('kg',(Math.random()*14+0.8).toFixed(1)),
+      cats:T.CATS.map((c,i)=>({l:c,pick:()=>this.set('cat',i),bg:i===d.cat?'#075A36':'#fff',fg:i===d.cat?'#fff':'#17251B',bd:i===d.cat?'#075A36':'#E2E7E1'})),
+      senderHit:sReg?'TMO Rider user ✓ · '+sReg.name+' · TMO Card '+T.fmt(sReg.card||0):'',
+      dests:T.DESTS.map((x,i)=>({l:x.s,pick:()=>this.set('dest',i),bg:i===d.dest?'#075A36':'#fff',fg:i===d.dest?'#fff':'#17251B',bd:i===d.dest?'#075A36':'#E2E7E1'})),
+      pr:{lines:pr.lines,totalF:T.fmt(pr.total)},toggleDecl:()=>this.set('decl',!d.decl),decl:{bg:d.decl?'#075A36':'#fff',tick:d.decl?'✓':''},
+      cur:cur?{code:cur.code,sender:cur.senderName,dueF:T.fmt(due),qr:T.qr(T.wbPayload(cur),6),to:T.dest(cur.dest).s,recv:cur.receiverName,kg:cur.kg,paidF:T.fmt(cur.paidAmount)}:{},
+      methods:[{id:'POS',icon:'POS',sub:'Card tap or insert · TMO-POS-03',ib:'#17251B',if:'#fff'},{id:'TMO Card',icon:'TMO',sub:sReg||(cur&&T.userByPhone(db,cur.senderPhone,'customer'))?'Sender’s card · deducts instantly':'Sender not registered',ib:'#075A36',if:'#fff'},{id:'Rider app',icon:'APP',sub:'Send request to sender’s TMO Rider',ib:'#FDF7D8',if:'#6B5300'}].map(m=>({icon:m.icon,name:m.id,sub:m.sub,ib:m.ib,if:m.if,op:1,bd:s.method===m.id?'#075A36':'transparent',pick:()=>this.setState({method:m.id,waiting:false,err:''})})),
+      payState:due<=0&&cur?{bg:'#E6F6EC',fg:'#075A36',t:'Paid '+T.fmt(cur.paidAmount)+' · confirmed by provider'}:s.waiting?{bg:'#FDF7D8',fg:'#6B5300',t:s.method==='Rider app'?'Request sent — waiting for '+(cur?cur.senderName.split(' ')[0]:'sender')+' to pay in TMO Rider…':'Waiting for POS approval…'}:{bg:'#F4F6F3',fg:'#5C6B60',t:'Not yet paid · status Created'},
+      cta,cta2,
+      assignOpen:!!s.assign,assignCode:s.assign||'',drivers,closeAssign:()=>this.setState({assign:null}),stop:e=>e.stopPropagation(),
+      endSum:{n:mine.length,total:T.fmt(pays.reduce((a,p)=>a+p.amount,0)),lines:Object.keys(by).length?Object.keys(by).map(k=>({k,v:T.fmt(by[k])})):[{k:'No collections yet',v:'—'}],...(toAssign.length?{t:toAssign.length+' paid shipment(s) still unassigned — they stay in the park queue for the next shift.',bg:'#FDF7D8',fg:'#6B5300'}:{t:'All paid shipments are assigned.',bg:'#E6F6EC',fg:'#075A36'})},
+      endShift:()=>{T.update(x=>{const u=T.user(x,me.id);u.onShift=false;T.log(x,u.name,'officer','ended shift · '+mine.length+' shipments · '+T.fmt(pays.reduce((a,p)=>a+p.amount,0)));});T.setSession('officer',null);go('signin',{pinMode:'signin',pin:'',scale:false,pos:false,checks:[false,false,false]});}
+    };
+  }
+}
+</script>
+</body>
+</html>

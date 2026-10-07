@@ -2,7 +2,7 @@
    Persists to localStorage and syncs across tabs/iframes (storage event + BroadcastChannel). */
 (function () {
   if (window.TMO) return;
-  var KEY = 'tmo.db.v1', SK = 'tmo.sess.';
+  var KEY = 'tmo.db.v3', PHONE = '08012345678', RECEIVER = '08098765432', PIN = '1234', CODE = '123456', WAYBILL = 'TMO-0001', SK = 'tmo.sess.';
   var DESTS = [
     { n: 'Sabo Market, Yaba', s: 'Yaba', km: 9, z: 'A' },
     { n: 'Computer Village, Ikeja', s: 'Ikeja', km: 21, z: 'B' },
@@ -34,19 +34,20 @@
   function seed() {
     var t = now();
     return {
-      v: 1, seq: 48300,
+      v: 3, seq: 48300,
       rates: { base: 500, svc: 250, ins: 1.5, vat: 7.5, bands: [600, 1200, 2000, 3200, 4800], zones: { A: 800, B: 1500, C: 2400 } },
       users: [
-        { id: 'u_admin', role: 'admin', name: 'Kemi Adebayo', phone: '08020000001', email: 'kemi.a@tmo.ng', status: 'active', createdAt: t },
-        { id: 'u_off1', role: 'officer', name: 'Bisi Olatunji', phone: '08054412290', pin: '1234', park: 'CMS Park, Obalende', staffId: 'CMS-OF-0417', status: 'active', createdAt: t },
-        { id: 'u_drv1', role: 'driver', name: 'Emeka Adeyemi', phone: '08035550192', pin: '2580', vehicle: 'Van', plate: 'LND 482 KJ', status: 'active', onDuty: false, createdAt: t },
-        { id: 'u_drv2', role: 'driver', name: 'Musa Kabiru', phone: '08061230044', pin: '1111', vehicle: 'Bus', plate: 'BRT-114', status: 'active', onDuty: true, createdAt: t }
+        { id: 'u_cus1', role: 'customer', name: 'Chika Nwosu', phone: PHONE, card: 15000, status: 'active', createdAt: t },
+        { id: 'u_cus2', role: 'customer', name: 'Tola Bello', phone: RECEIVER, card: 15000, status: 'active', createdAt: t },
+        { id: 'u_admin', role: 'admin', name: 'Kemi Adebayo', phone: PHONE, email: 'kemi.a@tmo.ng', status: 'active', createdAt: t },
+        { id: 'u_off1', role: 'officer', name: 'Bisi Olatunji', phone: PHONE, pin: PIN, park: 'CMS Park, Obalende', staffId: 'CMS-OF-0417', status: 'active', createdAt: t },
+        { id: 'u_drv1', role: 'driver', name: 'Emeka Adeyemi', phone: PHONE, pin: PIN, vehicle: 'Van', plate: 'LND 482 KJ', status: 'active', onDuty: true, createdAt: t }
       ],
       shipments: [], sms: [],
-      activity: [{ id: uid('a'), at: t, actor: 'System', role: 'system', text: 'TMO Logistics workspace ready. Seeded staff: officer Bisi (PIN 1234), drivers Emeka (PIN 2580) and Musa (PIN 1111).' }]
+      activity: [{ id: uid('a'), at: t, actor: 'System', role: 'system', text: 'TMO Logistics workspace ready. Sender (and staff) 0801 234 5678 · receiver 0809 876 5432 · PIN 1234 · code 123456 · waybill TMO-0001.' }]
     };
   }
-  function load() { try { var j = JSON.parse(localStorage.getItem(KEY)); if (j && j.v === 1) return j; } catch (e) { } var s = seed(); try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { } return s; }
+  function load() { try { var j = JSON.parse(localStorage.getItem(KEY)); if (j && j.v === 3) return j; } catch (e) { } var s = seed(); try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { } return s; }
   var db = load();
   var subs = [];
   var bc = ('BroadcastChannel' in window) ? new BroadcastChannel('tmo-live') : null;
@@ -59,7 +60,7 @@
   var libWait = setInterval(function () { if (window.qrcode) { clearInterval(libWait); notify(); } }, 120);
 
   var T = {
-    DESTS: DESTS, PICKUPS: PICKUPS, PARKS: PARKS, BANDS: BANDS, CATS: CATS, COLORS: COLORS,
+    PHONE: PHONE, RECEIVER: RECEIVER, PIN: PIN, CODE: CODE, WAYBILL: WAYBILL, DESTS: DESTS, PICKUPS: PICKUPS, PARKS: PARKS, BANDS: BANDS, CATS: CATS, COLORS: COLORS,
     norm: norm, fmtPhone: fmtPhone, fmt: fmt, time: time, ago: ago, rnd: rnd, uid: uid,
     get db() { return db; },
     subscribe: function (f) { subs.push(f); return function () { subs = subs.filter(function (x) { return x !== f; }); }; },
@@ -73,7 +74,7 @@
     ship: function (d, code) { var c = String(code || '').trim().toUpperCase(); return d.shipments.filter(function (s) { return s.code === c; })[0] || null; },
     log: function (d, actor, role, text, code) { d.activity.unshift({ id: uid('a'), at: now(), actor: actor, role: role, text: text, code: code || '' }); if (d.activity.length > 400) d.activity.length = 400; },
     sms: function (d, phone, text, kind) { var m = { id: uid('m'), to: norm(phone), text: text, kind: kind || 'info', at: now() }; d.sms.unshift(m); if (d.sms.length > 300) d.sms.length = 300; return m; },
-    sendOtp: function (phone, app) { var code = rnd(6); T.update(function (d) { T.sms(d, phone, 'Your TMO ' + app + ' verification code is ' + code + '. Do not share it.', 'otp'); }); return code; },
+    sendOtp: function (phone, app) { var code = CODE; T.update(function (d) { T.sms(d, phone, 'Your TMO ' + app + ' verification code is ' + code + '. Do not share it.', 'otp'); }); return code; },
     bandIndex: function (kg) { for (var i = 0; i < BANDS.length; i++) if (kg < BANDS[i].max) return i; return BANDS.length - 1; },
     dest: function (name) { return DESTS.filter(function (x) { return x.n === name || x.s === name; })[0] || DESTS[1]; },
     price: function (d, o) {
@@ -92,11 +93,11 @@
       if (sh.channel === 'online') { if (!sh.driverId) return sh.paidAmount ? 'Paid' : 'Requested'; if (T.collectable(sh)) return 'Ready for pickup'; return 'Assigned'; }
       return s;
     },
-    newCode: function (d) { d.seq += 1; return 'TMO-LG-' + d.seq; },
+    newCode: function (d) { d.seq += 1; return WAYBILL; },
     create: function (d, o, actor, role) {
-      var sh = Object.assign({ id: uid('s'), code: T.newCode(d), podToken: rnd(6), status: 'Created', payments: [], paidAmount: 0, history: [], issues: [], createdAt: now() }, o);
+      var sh = Object.assign({ id: uid('s'), code: T.newCode(d), podToken: CODE, status: 'Created', payments: [], paidAmount: 0, history: [], issues: [], createdAt: now() }, o);
       sh.history.push({ status: 'Created', at: now(), by: actor, note: o.channel === 'online' ? 'Online pickup request' : (o.channel === 'ride' ? 'Passenger package registered' : 'Drop-off registered') });
-      d.shipments.unshift(sh);
+      d.shipments = d.shipments.filter(function (x) { return x.code !== sh.code; }); d.shipments.unshift(sh);
       T.log(d, actor, role, (o.channel === 'online' ? 'requested a pickup ' : 'registered a shipment ') + sh.code + ' → ' + T.dest(o.dest).s, sh.code);
       return sh;
     },

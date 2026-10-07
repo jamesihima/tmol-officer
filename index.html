@@ -23,7 +23,7 @@
       <a href="TMO Design System.dc.html" style="font-size:13px">← Design system</a>
       <div style="font-size:26px;font-weight:800;line-height:1.15">TMO Officer · Park intake</div>
       <div style="font-size:15px;color:#5C6B60;line-height:1.5">Registers drop-off and ride-along packages, collects payment, issues the waybill QR and assigns drivers — live on the shared system.</div>
-      <div style="background:#fff;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5"><b>Test logins</b><span style="color:#5C6B60">Bisi Olatunji · 0805 441 2290 · PIN 1234. Or activate a new officer with any invite code.</span></div>
+      <div style="background:#fff;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5"><b>Test logins</b><span style="color:#5C6B60">One login for everything: <b style="color:#17251B">0801 234 5678</b> · PIN <b style="color:#17251B">1234</b> · code <b style="color:#17251B">123456</b> · waybill <b style="color:#17251B">TMO-0001</b></span></div>
       <a href="TMO Test Console.dc.html" style="background:#075A36;color:#fff;padding:14px 16px;border-radius:14px;font-weight:700;display:flex;justify-content:space-between">Open Test Console <span>→</span></a>
     </aside>
   </sc-if>
@@ -204,9 +204,9 @@
 <script type="text/x-dc" data-dc-script>
 const FLOW=['type','inspect','people','price','pay','done'];
 const TITLES={type:'Shipment type',inspect:'Inspect & weigh',people:'Sender & receiver',price:'System price',pay:'Payment',done:'Waybill & hand over'};
-const BLANK={type:'drop',photo:'',kg:'',cat:0,desc:'',seal:'',sPhone:'',sName:'',rName:'',rPhone:'',dest:-1,value:'20000',decl:false};
+const BLANK={type:'drop',photo:'',kg:'',cat:0,desc:'',seal:'',sPhone:'08012345678',sName:'Chika Nwosu',rName:'Tola Bello',rPhone:'08098765432',dest:-1,value:'20000',decl:false};
 class Component extends DCLogic {
-  state={ready:false,screen:'signin',pinMode:'signin',pin:'',newPin:'',err:'',name:'',phone:'',park:0,invite:'',scale:false,pos:false,checks:[false,false,false],d:Object.assign({},BLANK),method:'POS',cur:null,waiting:false,assign:null,filter:'assign'};
+  state={ready:false,screen:'signin',pinMode:'signin',pin:'',newPin:'',err:'',name:'',phone:'08012345678',park:0,invite:'',scale:false,pos:false,checks:[false,false,false],d:Object.assign({},BLANK),method:'POS',cur:null,waiting:false,assign:null,filter:'assign'};
   componentDidMount(){const boot=()=>{const T=window.TMO;if(!T)return setTimeout(boot,40);const u=this.me();this.setState({ready:true,screen:u?(u.onShift?'queue':'shift'):'signin',phone:u?u.phone:''});this.unsub=T.subscribe(()=>this.forceUpdate());};boot();this._c=setInterval(()=>this.forceUpdate(),30000);}
   componentWillUnmount(){this.unsub&&this.unsub();clearInterval(this._c);}
   me(){const T=window.TMO;return T?T.user(T.db,T.getSession('officer')):null;}
@@ -218,15 +218,15 @@ class Component extends DCLogic {
     const go=(screen,x)=>this.setState(Object.assign({screen,err:''},x||{}));
     // PIN pad
     const finishPin=p=>{
-      if(s.pinMode==='signin'){const u=T.userByPhone(db,s.phone,'officer');if(!u)return this.setState({pin:'',err:'No officer with this number. Activate first.'});if(u.pin&&u.pin!==p)return this.setState({pin:'',err:'Incorrect PIN. Use “Forgot PIN” to reset.'});
+      if(s.pinMode==='signin'){const u=T.userByPhone(db,s.phone,'officer');if(!u)return this.setState({pin:'',err:'No officer with this number. Activate first.'});if(p!==T.PIN)return this.setState({pin:'',err:'Incorrect PIN. Use “Forgot PIN” to reset.'});
         T.setSession('officer',u.id);T.update(x=>T.log(x,u.name,'officer','signed in at '+u.park));go(u.onShift?'queue':'shift',{pin:''});}
-      else if(s.pinMode==='create')this.setState({newPin:p,pin:'',pinMode:'confirm',err:''});
+      else if(s.pinMode==='create'){if(p!==T.PIN)return this.setState({pin:'',err:'Every PIN is 1234'});this.setState({newPin:p,pin:'',pinMode:'confirm',err:''});}
       else{if(p!==s.newPin)return this.setState({pin:'',pinMode:'create',err:'PINs didn’t match — try again'});let id;
         T.update(x=>{let u=T.userByPhone(x,s.phone,'officer');if(!u){u={id:T.uid('u'),role:'officer',name:s.name.trim()||'New Officer',phone:T.norm(s.phone),park:T.PARKS[s.park],staffId:'CMS-OF-'+T.rnd(4),createdAt:Date.now()};x.users.push(u);}
           if(s.name.trim())u.name=s.name.trim();u.park=u.park||T.PARKS[s.park];u.pin=p;u.status='active';id=u.id;T.log(x,u.name,'officer','activated officer account · '+u.park);});
         T.setSession('officer',id);go('shift',{pin:'',pinMode:'signin'});}};
     const press=k=>()=>{if(k==='⌫')return this.setState({pin:s.pin.slice(0,-1),err:''});if(!k)return;if(s.pinMode==='signin'&&T.norm(s.phone).length!==11)return this.setState({err:'Enter your phone number first'});const p=(s.pin+k).slice(0,4);this.setState({pin:p,err:''});if(p.length===4)setTimeout(()=>finishPin(p),200);};
-    const PU={signin:{title:'Sign in',sub:'Phone number and 4-digit PIN.',askPhone:true},create:{title:'Create a PIN',sub:'Any 4 digits. You’ll use it every shift.',askPhone:false},confirm:{title:'Confirm your PIN',sub:'Enter the same 4 digits again.',askPhone:false}}[s.pinMode];
+    const PU={signin:{title:'Sign in',sub:'0801 234 5678 · PIN 1234',askPhone:true},create:{title:'Set your PIN',sub:'Enter 1234 — one PIN for everyone',askPhone:false},confirm:{title:'Confirm your PIN',sub:'Enter the same 4 digits again.',askPhone:false}}[s.pinMode];
     const invitedU=T.userByPhone(db,s.phone,'officer');
     // draft & price
     const dest=T.DESTS[d.dest],kg=parseFloat(d.kg)||0;

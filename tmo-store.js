@@ -14,10 +14,11 @@
   var PICKUPS = ['Balogun Market, Lagos Island', 'Idumota Market', 'Tinubu Square', 'CMS Park, Obalende', 'Marina, Lagos Island'];
   var PARKS = ['CMS Park, Obalende', 'Balogun Market desk', 'Tinubu Square', 'Idumota'];
   var BANDS = [{ l: 'Under 2 kg', max: 2 }, { l: '2–5 kg', max: 5 }, { l: '5–10 kg', max: 10 }, { l: '10–20 kg', max: 20 }, { l: '20 kg+', max: 1e9 }];
+  var VEH = [{ k: 'Bicycle', cap: 5 }, { k: 'Motorbike', cap: 25 }, { k: 'Car', cap: 120 }, { k: 'Bus', cap: 400 }];
   var CATS = ['Fabrics', 'Electronics', 'Food items', 'Documents', 'Household', 'Other'];
   var COLORS = {
     'Created': ['#F4F6F3', '#5C6B60'], 'Requested': ['#F4F6F3', '#5C6B60'], 'Awaiting payment': ['#FDF7D8', '#6B5300'],
-    'Paid': ['#E6F6EC', '#075A36'], 'Accepted': ['#E6F6EC', '#075A36'], 'Assigned': ['#FDF7D8', '#6B5300'],
+    'Awaiting driver': ['#FDF7D8', '#6B5300'], 'Driver accepted': ['#E6F6EC', '#075A36'], 'Paid': ['#E6F6EC', '#075A36'], 'Accepted': ['#E6F6EC', '#075A36'], 'Assigned': ['#FDF7D8', '#6B5300'],
     'Ready for pickup': ['#E6F6EC', '#075A36'], 'In transit': ['#F9D44B', '#17251B'], 'Out for delivery': ['#F9D44B', '#17251B'],
     'Delivered': ['#075A36', '#fff'], 'Closed': ['#17251B', '#fff'], 'Cancelled': ['#FBE9E6', '#C8412F'], 'Issue': ['#FBE9E6', '#C8412F'],
     'active': ['#E6F6EC', '#075A36'], 'pending': ['#FDF7D8', '#6B5300'], 'invited': ['#F4F6F3', '#5C6B60'], 'rejected': ['#FBE9E6', '#C8412F']
@@ -47,7 +48,15 @@
       activity: [{ id: uid('a'), at: t, actor: 'System', role: 'system', text: 'TMO Logistics workspace ready. Sender (and staff) 0801 234 5678 · receiver 0809 876 5432 · PIN 1234 · code 123456 · waybill TMO-0001.' }]
     };
   }
-  function load() { try { var j = JSON.parse(localStorage.getItem(KEY)); if (j && j.v === 3) return j; } catch (e) { } var s = seed(); try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { } return s; }
+  function load() { return migrate(load0()); }
+  function load0() { try { var j = JSON.parse(localStorage.getItem(KEY)); if (j && j.v === 3) return j; } catch (e) { } var s = seed(); try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { } return s; }
+  function migrate(db) { var before = JSON.stringify(db);
+  (function () { var add = [['u_drv2', 'Musa Bello', '08020000002', 'Car', 'LND 233 AB'], ['u_drv3', 'Ade Okon', '08020000003', 'Motorbike', 'LND 118 MC'], ['u_drv4', 'Femi Ojo', '08020000004', 'Bicycle', '']];
+    db.users.forEach(function (u) { if (u.role === 'driver' && u.vehicle === 'Van') u.vehicle = 'Bus'; });
+    add.forEach(function (a) { if (!db.users.some(function (u) { return u.id === a[0]; })) db.users.push({ id: a[0], role: 'driver', name: a[1], phone: a[2], pin: PIN, vehicle: a[3], plate: a[4], status: 'active', onDuty: true, createdAt: Date.now() }); });
+    (db.shipments || []).forEach(function (sh) { if (!sh.pin4) sh.pin4 = String(1000 + Math.floor(Math.random() * 9000)); if (sh.driverId && !sh.acceptedAt && sh.status !== 'Assigned') sh.acceptedAt = Date.now(); }); })();
+  (db.shipments || []).forEach(function (sh) { if (sh.channel === 'ride' && !['Closed', 'Cancelled'].includes(sh.status) && (sh.paidAmount || 0) > 0 && Math.max(0, (sh.finalPrice || sh.estPrice || 0) - sh.paidAmount) <= 0) { sh.status = 'Closed'; sh.driverId = null; (sh.history = sh.history || []).push({ status: 'Closed', at: Date.now(), by: 'System', note: 'Passenger package paid · service complete' }); } });
+    var after = JSON.stringify(db); if (after !== before) { try { localStorage.setItem(KEY, after); } catch (e) { } } return db; }
   var db = load();
   var subs = [];
   var bc = ('BroadcastChannel' in window) ? new BroadcastChannel('tmo-live') : null;
@@ -60,7 +69,11 @@
   var libWait = setInterval(function () { if (window.qrcode) { clearInterval(libWait); notify(); } }, 120);
 
   var T = {
-    PHONE: PHONE, RECEIVER: RECEIVER, PIN: PIN, CODE: CODE, WAYBILL: WAYBILL, DESTS: DESTS, PICKUPS: PICKUPS, PARKS: PARKS, BANDS: BANDS, CATS: CATS, COLORS: COLORS,
+    PHONE: PHONE, RECEIVER: RECEIVER, PIN: PIN, CODE: CODE, WAYBILL: WAYBILL, DESTS: DESTS, PICKUPS: PICKUPS, PARKS: PARKS, BANDS: BANDS, CATS: CATS, COLORS: COLORS, VEH: VEH,
+    itemKg: function (sh) { return sh.kg || [2, 5, 10, 20, 30][sh.estBand || 0]; },
+    vehFor: function (kg) { for (var i = 0; i < VEH.length; i++) if (kg <= VEH[i].cap) return VEH[i].k; return 'Bus'; },
+    cap: function (v) { var x = VEH.filter(function (y) { return y.k === v; })[0]; return x ? x.cap : 400; },
+    pin4: function () { return String(1000 + Math.floor(Math.random() * 9000)); },
     norm: norm, fmtPhone: fmtPhone, fmt: fmt, time: time, ago: ago, rnd: rnd, uid: uid,
     get db() { return db; },
     subscribe: function (f) { subs.push(f); return function () { subs = subs.filter(function (x) { return x !== f; }); }; },
@@ -90,12 +103,13 @@
       var s = sh.status;
       if (s === 'Cancelled' || s === 'Closed' || s === 'Delivered' || s === 'In transit' || s === 'Out for delivery') return s;
       if (sh.kg && T.due(sh) > 0) return 'Awaiting payment';
-      if (sh.channel === 'online') { if (!sh.driverId) return sh.paidAmount ? 'Paid' : 'Requested'; if (T.collectable(sh)) return 'Ready for pickup'; return 'Assigned'; }
+      if (sh.channel === 'online') { if (!sh.driverId) return sh.paidAmount ? 'Paid' : 'Requested'; if (!sh.acceptedAt) return 'Awaiting driver'; if (T.collectable(sh)) return 'Ready for pickup'; return 'Driver accepted'; }
+      if (s === 'Assigned') return sh.acceptedAt ? 'Driver accepted' : 'Awaiting driver';
       return s;
     },
     newCode: function (d) { d.seq += 1; return WAYBILL; },
     create: function (d, o, actor, role) {
-      var sh = Object.assign({ id: uid('s'), code: T.newCode(d), podToken: CODE, status: 'Created', payments: [], paidAmount: 0, history: [], issues: [], createdAt: now() }, o);
+      var sh = Object.assign({ id: uid('s'), code: T.newCode(d), podToken: CODE, pin4: T.pin4(), status: 'Created', payments: [], paidAmount: 0, history: [], issues: [], createdAt: now() }, o);
       sh.history.push({ status: 'Created', at: now(), by: actor, note: o.channel === 'online' ? 'Online pickup request' : (o.channel === 'ride' ? 'Passenger package registered' : 'Drop-off registered') });
       d.shipments = d.shipments.filter(function (x) { return x.code !== sh.code; }); d.shipments.unshift(sh);
       T.log(d, actor, role, (o.channel === 'online' ? 'requested a pickup ' : 'registered a shipment ') + sh.code + ' → ' + T.dest(o.dest).s, sh.code);
@@ -109,6 +123,7 @@
       sh.payments.push({ id: uid('p'), amount: amount, method: method, at: now(), by: actor, park: sh.park || 'Online' });
       sh.paidAmount = (sh.paidAmount || 0) + amount; sh.payRequest = false;
       T.note(d, sh, 'Payment received', actor, role, fmt(amount) + ' via ' + method);
+      if (sh.channel === 'ride') { if (T.due(sh) <= 0) { T.step(d, sh, 'Closed', actor, role, 'Passenger package paid · service complete'); if (sh.senderPhone) T.sms(d, sh.senderPhone, 'TMO: Payment of ' + fmt(sh.paidAmount) + ' received for passenger package ' + sh.code + '. Thank you.'); } return true; }
       if (!sh.waybillAt && (sh.kg ? T.due(sh) <= 0 : true)) {
         if (sh.channel === 'online' && !sh.kg) { /* estimate paid upfront */ }
         else { sh.waybillAt = now(); T.sms(d, sh.senderPhone, 'TMO: Payment of ' + fmt(sh.paidAmount) + ' confirmed. Waybill ' + sh.code + ' issued. Track: tmo.ng/t/' + sh.code); }

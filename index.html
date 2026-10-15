@@ -88,6 +88,7 @@
           <sc-for list="{{ queue }}" as="q" hint-placeholder-count="2">
             <div style="background:#fff;border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
               <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'IBM Plex Mono';font-size:13px;font-weight:600;color:#5C6B60">{{ q.code }}</span><span style="padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;background:{{ q.bg }};color:{{ q.fg }}">{{ q.status }}</span></div>
+              <sc-if value="{{ q.req }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;font-weight:800;letter-spacing:.08em;color:#6B5300">{{ q.req }}</span></sc-if>
               <span style="font-weight:800;font-size:16px">→ {{ q.to }} · {{ q.recv }}</span>
               <span style="font-size:13px;color:#5C6B60">{{ q.meta }}</span>
               <sc-if value="{{ q.act }}" hint-placeholder-val="{{ false }}"><button onClick="{{ q.go }}" style="height:42px;border:1.5px solid #075A36;border-radius:12px;background:#fff;color:#075A36;font-weight:800;font-size:14px;cursor:pointer">{{ q.act }}</button></sc-if>
@@ -146,10 +147,18 @@
       </div>
     </sc-if>
 
+    <sc-if value="{{ is.rideprice }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto;padding:12px 20px;display:flex;flex-direction:column;gap:14px">
+        <div style="background:#17251B;color:#fff;border-radius:22px;padding:18px 20px;display:flex;flex-direction:column;gap:4px"><span style="font-size:13px;color:#C9D3CB;font-weight:600">Agreed package fee (₦)</span><input value="{{ ridePrice }}" onInput="{{ on.ridePrice }}" placeholder="0" inputmode="numeric" autofocus style="width:100%;background:transparent;border:0;outline:none;color:#fff;font-size:44px;font-weight:800;padding:0"></div>
+        <span style="font-size:14px;color:#5C6B60;line-height:1.45">Enter the price agreed with the passenger. Bus fare is charged separately at the ticket counter.</span>
+      </div>
+    </sc-if>
+
     <sc-if value="{{ is.pay }}" hint-placeholder-val="{{ false }}">
       <div style="flex:1;overflow-y:auto;padding:12px 20px;display:flex;flex-direction:column;gap:12px">
         <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0"><span style="font-size:14px;color:#5C6B60;font-weight:600">Collect from {{ cur.sender }} · {{ cur.code }}</span><span style="font-size:46px;font-weight:800;letter-spacing:-.02em">{{ cur.dueF }}</span></div>
         <sc-for list="{{ methods }}" as="m" hint-placeholder-count="3"><button onClick="{{ m.pick }}" style="text-align:left;cursor:pointer;background:#fff;border-radius:18px;padding:14px 16px;display:flex;gap:14px;align-items:center;border:2px solid {{ m.bd }};opacity:{{ m.op }}"><div style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;background:{{ m.ib }};color:{{ m.if }};flex:none">{{ m.icon }}</div><div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-weight:800;font-size:15px;color:#17251B">{{ m.name }}</span><span style="font-size:13px;color:#5C6B60">{{ m.sub }}</span></div></button></sc-for>
+        <sc-if value="{{ needRidePhone }}" hint-placeholder-val="{{ false }}"><input value="{{ ridePhone }}" onInput="{{ on.ridePhone }}" placeholder="Passenger’s TMO Rider phone" inputmode="tel" style="height:52px;border:1.5px solid #E2E7E1;border-radius:14px;padding:0 16px;font-size:16px;font-weight:600;outline:none;background:#fff"></sc-if>
         <div style="border-radius:16px;padding:14px 16px;font-size:14px;font-weight:700;display:flex;gap:10px;align-items:center;background:{{ payState.bg }};color:{{ payState.fg }}"><span style="width:10px;height:10px;border-radius:50%;background:currentColor;flex:none"></span>{{ payState.t }}</div>
       </div>
     </sc-if>
@@ -160,12 +169,13 @@
         <div style="width:100%;background:#fff;border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px;align-items:center">
           <img src="{{ cur.qr }}" alt="Waybill QR" style="width:190px;height:190px;image-rendering:pixelated">
           <span style="font-family:'IBM Plex Mono';font-size:22px;font-weight:600;letter-spacing:.05em">{{ cur.code }}</span>
-          <div style="width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;font-size:14px;border-top:1.5px dashed #E2E7E1;padding-top:12px">
+          <sc-if value="{{ curRide }}" hint-placeholder-val="{{ false }}"><div style="width:100%;display:flex;justify-content:space-between;font-size:14px;border-top:1.5px dashed #E2E7E1;padding-top:12px"><span style="color:#5C6B60;font-weight:600">PASSENGER PACKAGE · PAID</span><b>{{ cur.paidF }}</b></div></sc-if>
+          <sc-if value="{{ curNotRide }}" hint-placeholder-val="{{ true }}"><div style="width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;font-size:14px;border-top:1.5px dashed #E2E7E1;padding-top:12px">
             <div style="display:flex;flex-direction:column"><span style="font-size:12px;color:#5C6B60;font-weight:600">TO</span><b>{{ cur.to }}</b></div>
             <div style="display:flex;flex-direction:column"><span style="font-size:12px;color:#5C6B60;font-weight:600">RECEIVER</span><b>{{ cur.recv }}</b></div>
             <div style="display:flex;flex-direction:column"><span style="font-size:12px;color:#5C6B60;font-weight:600">WEIGHT</span><b>{{ cur.kg }} kg</b></div>
             <div style="display:flex;flex-direction:column"><span style="font-size:12px;color:#5C6B60;font-weight:600">PAID</span><b>{{ cur.paidF }}</b></div>
-          </div>
+          </div></sc-if>
         </div>
         <span style="font-size:13px;color:#5C6B60;text-align:center;line-height:1.45">Stick this label on the package. The driver scans it to take custody.</span>
       </div>
@@ -192,7 +202,9 @@
         <div onClick="{{ stop }}" style="width:100%;background:#fff;border-radius:28px 28px 0 0;padding:10px 20px 34px;display:flex;flex-direction:column;gap:8px;max-height:80%;overflow-y:auto">
           <div style="width:40px;height:5px;border-radius:3px;background:#E2E7E1;align-self:center;margin-bottom:8px"></div>
           <span style="font-size:20px;font-weight:800">Assign {{ assignCode }}</span>
-          <span style="font-size:14px;color:#5C6B60;margin-bottom:4px">Approved drivers · on duty first</span>
+          <span style="font-size:14px;color:#5C6B60">{{ asg.info }}</span>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin:4px 0"><sc-for list="{{ vehOpts }}" as="vo" hint-placeholder-count="4"><button onClick="{{ vo.pick }}" style="height:44px;padding:0 14px;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1.5px solid {{ vo.bd }};background:{{ vo.bg }};color:{{ vo.fg }}">{{ vo.l }}<span style="font-size:10px;font-weight:700;opacity:.8">{{ vo.s }}</span></button></sc-for></div>
+          <sc-if value="{{ noDrivers }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;color:#5C6B60;padding:8px 0">No approved drivers with this vehicle.</span></sc-if>
           <sc-for list="{{ drivers }}" as="x" hint-placeholder-count="2"><button onClick="{{ x.pick }}" style="border:1.5px solid #E2E7E1;background:#fff;text-align:left;cursor:pointer;padding:14px;border-radius:16px;display:flex;gap:12px;align-items:center"><div style="width:44px;height:44px;border-radius:50%;background:{{ x.bg }};color:#17251B;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none">{{ x.ini }}</div><div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-weight:800;font-size:15px;color:#17251B">{{ x.name }}</span><span style="font-size:13px;color:#5C6B60">{{ x.sub }}</span></div><span style="font-family:'IBM Plex Mono';font-size:12px;font-weight:600;color:#5C6B60">{{ x.plate }}</span></button></sc-for>
         </div>
       </div>
@@ -203,10 +215,10 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 const FLOW=['type','inspect','people','price','pay','done'];
-const TITLES={type:'Shipment type',inspect:'Inspect & weigh',people:'Sender & receiver',price:'System price',pay:'Payment',done:'Waybill & hand over'};
+const TITLES={rideprice:'Package price',type:'Shipment type',inspect:'Inspect & weigh',people:'Sender & receiver',price:'System price',pay:'Payment',done:'Waybill & hand over'};
 const BLANK={type:'drop',photo:'',kg:'',cat:0,desc:'',seal:'',sPhone:'08012345678',sName:'Chika Nwosu',rName:'Tola Bello',rPhone:'08098765432',dest:-1,value:'20000',decl:false};
 class Component extends DCLogic {
-  state={ready:false,screen:'signin',pinMode:'signin',pin:'',newPin:'',err:'',name:'',phone:'08012345678',park:0,invite:'',scale:false,pos:false,checks:[false,false,false],d:Object.assign({},BLANK),method:'POS',cur:null,waiting:false,assign:null,filter:'assign'};
+  state={ready:false,screen:'signin',pinMode:'signin',pin:'',newPin:'',err:'',name:'',phone:'08012345678',park:0,invite:'',scale:false,pos:false,checks:[false,false,false],d:Object.assign({},BLANK),method:'POS',cur:null,waiting:false,assign:null,assignVeh:null,filter:'requests'};
   componentDidMount(){const boot=()=>{const T=window.TMO;if(!T)return setTimeout(boot,40);const u=this.me();this.setState({ready:true,screen:u?(u.onShift?'queue':'shift'):'signin',phone:u?u.phone:''});this.unsub=T.subscribe(()=>this.forceUpdate());};boot();this._c=setInterval(()=>this.forceUpdate(),30000);}
   componentWillUnmount(){this.unsub&&this.unsub();clearInterval(this._c);}
   me(){const T=window.TMO;return T?T.user(T.db,T.getSession('officer')):null;}
@@ -238,36 +250,46 @@ class Component extends DCLogic {
     const createShip=()=>{let code;T.update(x=>{const sh=T.create(x,{channel:d.type,park:me.park,officerId:me.id,officerName:me.name,senderName:d.sName.trim(),senderPhone:T.norm(d.sPhone),receiverName:d.rName.trim(),receiverPhone:T.norm(d.rPhone),pickup:me.park,dest:dest.n,category:T.CATS[d.cat],desc:d.desc||T.CATS[d.cat],seal:d.seal,kg,photo:d.photo,declaredValue:Number(d.value)||0,estPrice:pr.total,finalPrice:pr.total},me.name,'officer');code=sh.code;});go('pay',{cur:code,waiting:false});};
     const doPay=()=>{
       if(!cur)return;
+      if(cur.channel==='ride'&&s.method!=='POS'){const u=T.userByPhone(db,s.ridePhone,'customer');if(!u)return this.setState({err:'Enter the passenger’s registered TMO Rider phone, or use POS.'});T.update(x=>{const sh=T.ship(x,cur.code);sh.senderPhone=T.norm(u.phone);sh.senderName=u.name;sh.senderId=u.id;});}
       if(s.method==='Rider app'){if(!sReg&&!T.userByPhone(db,cur.senderPhone,'customer'))return this.setState({err:'Sender has no TMO Rider account. Use POS or TMO Card.'});T.update(x=>{const sh=T.ship(x,cur.code);sh.payRequest=true;T.note(x,sh,'Payment requested',nm,'officer',T.fmt(T.due(sh))+' via TMO Rider app');T.sms(x,sh.senderPhone,'TMO: '+nm+' at '+sh.park+' requests '+T.fmt(T.due(sh))+' for '+sh.code+'. Open TMO Rider to pay.');});return this.setState({waiting:true});}
       if(s.method==='POS'){this.setState({waiting:true});setTimeout(()=>{T.update(x=>{const sh=T.ship(x,cur.code);if(T.due(sh)>0)T.pay(x,sh,T.due(sh),'POS · TMO-POS-03',nm,'officer');});this.setState({waiting:false});},1300);return;}
       let r;T.update(x=>{const sh=T.ship(x,cur.code);r=T.pay(x,sh,T.due(sh),'TMO Card',nm,'officer');});if(!r)this.setState({err:'TMO Card declined — sender not registered or low balance.'});};
     let cta=null,cta2=null;
-    if(FLOW.includes(sc)){
-      if(sc==='pay')cta=due<=0&&cur?{l:'Issue waybill',go:()=>go('done'),bg:'#075A36',fg:'#fff'}:{l:s.waiting?'Waiting for confirmation…':'Collect '+T.fmt(due)+' · '+s.method,go:s.waiting?()=>{}:doPay,bg:s.waiting?'#E2E7E1':'#075A36',fg:s.waiting?'#8A968D':'#fff'};
+    const rp=Number(s.ridePrice)||0;
+    if(sc==='rideprice')cta={l:rp>0?'Continue to payment · '+T.fmt(rp):'Enter a price',go:()=>{if(rp<=0)return this.setState({err:'Enter the agreed price'});let code;T.update(x=>{const sh=T.create(x,{channel:'ride',park:me.park,officerId:me.id,officerName:me.name,senderName:'Passenger',senderPhone:'',receiverName:'',receiverPhone:'',pickup:me.park,dest:'',category:'Passenger package',desc:'Passenger package',kg:0,photo:'',declaredValue:0,estPrice:rp,finalPrice:rp},me.name,'officer');code=sh.code;});go('pay',{cur:code,waiting:false,ridePhone:''});},bg:rp>0?'#075A36':'#E2E7E1',fg:rp>0?'#fff':'#8A968D'};
+    else if(FLOW.includes(sc)){
+      if(sc==='pay')cta=due<=0&&cur?(cur.channel==='ride'?{l:'Done · back to queue',go:()=>go('queue',{d:Object.assign({},BLANK)}),bg:'#075A36',fg:'#fff'}:{l:'Issue waybill',go:()=>go('done'),bg:'#075A36',fg:'#fff'}):{l:s.waiting?'Waiting for confirmation…':'Collect '+T.fmt(due)+' · '+s.method,go:s.waiting?()=>{}:doPay,bg:s.waiting?'#E2E7E1':'#075A36',fg:s.waiting?'#8A968D':'#fff'};
+      else if(sc==='done'&&cur&&cur.channel==='ride'){cta={l:'Back to queue',go:()=>go('queue',{d:Object.assign({},BLANK)}),bg:'#075A36',fg:'#fff'};}
       else if(sc==='done'){cta={l:'Assign to driver now',go:()=>this.setState({assign:cur.code}),bg:'#075A36',fg:'#fff'};cta2={l:'Back to queue',go:()=>go('queue',{d:Object.assign({},BLANK)})};}
       else cta={l:sc==='price'?'Create shipment & collect '+pr.totalF:'Continue',go:()=>{if(!ok)return this.setState({err:sc==='inspect'?'Photo and weight are required':sc==='people'?'Fill sender, receiver (11-digit phones) and destination':'Customer must accept the declaration'});if(sc==='price')return createShip();go(FLOW[FLOW.indexOf(sc)+1]);},bg:ok?'#075A36':'#E2E7E1',fg:ok?'#fff':'#8A968D'};
     }
     // queue
     const today=new Date();today.setHours(0,0,0,0);
     const parkShips=me?db.shipments.filter(x=>x.channel!=='online'&&x.park===me.park):[];
-    const toAssign=parkShips.filter(x=>x.status==='Accepted'&&!x.driverId);
+    const requests=db.shipments.filter(x=>x.channel==='online'&&!x.driverId&&!['Cancelled','Closed','Delivered'].includes(x.status));
+    const toAssign=parkShips.filter(x=>x.channel!=='ride'&&x.status==='Accepted'&&!x.driverId);
     const unpaid=parkShips.filter(x=>x.status==='Created');
-    const list=s.filter==='assign'?toAssign:s.filter==='unpaid'?unpaid:parkShips.filter(x=>x.createdAt>=today.getTime());
-    const queue=list.map(x=>{const st=T.display(x),c=T.chip(st),dr=x.driverId?T.user(db,x.driverId):null;return {code:x.code,status:st,bg:c[0],fg:c[1],to:T.dest(x.dest).s,recv:x.receiverName,meta:x.kg+' kg · '+T.fmt(x.finalPrice)+(dr?' · '+dr.name:'')+' · '+T.time(x.createdAt),act:x.status==='Accepted'&&!x.driverId?'Assign to driver':x.status==='Created'?'Resume payment':'',go:()=>x.status==='Created'?go('pay',{cur:x.code,waiting:false}):this.setState({assign:x.code})};});
-    const drivers=db.users.filter(u=>u.role==='driver'&&u.status==='active').sort((a,b)=>(b.onDuty?1:0)-(a.onDuty?1:0)).map(u=>({ini:u.name.split(' ').map(w=>w[0]).join('').slice(0,2),name:u.name,sub:(u.onDuty?'On duty':'Off duty')+' · '+(u.vehicle||'')+' · '+db.shipments.filter(x=>x.driverId===u.id&&!['Closed','Delivered','Cancelled'].includes(x.status)).length+' active jobs',plate:u.plate||'',bg:u.onDuty?'#3DBE72':'#E2E7E1',pick:()=>{T.update(x=>{const sh=T.ship(x,s.assign);sh.driverId=u.id;T.step(x,sh,'Assigned',nm,'officer','to '+u.name+' · '+(u.plate||''));T.sms(x,u.phone,'TMO Driver: New job '+sh.code+' — collect at '+sh.park+' for '+T.dest(sh.dest).s+'.');});this.setState({assign:null});if(sc==='done')go('queue',{d:Object.assign({},BLANK)});}}));
+    const list=s.filter==='requests'?requests:s.filter==='assign'?toAssign:s.filter==='unpaid'?unpaid:parkShips.filter(x=>x.createdAt>=today.getTime());
+    const queue=list.map(x=>{const st=T.display(x),c=T.chip(st),dr=x.driverId?T.user(db,x.driverId):null;const onl=x.channel==='online';return {code:x.code,status:st,bg:c[0],fg:c[1],req:onl?'PICKUP REQUEST · '+x.senderName.toUpperCase():'',to:T.dest(x.dest).s,recv:x.receiverName,meta:(onl?'From '+x.pickup+' · est. '+T.BANDS[x.estBand||0].l:x.channel==='ride'?'Passenger package':x.kg+' kg')+' · '+T.fmt(x.finalPrice)+(dr?' · '+dr.name:'')+' · '+T.time(x.createdAt),act:onl?(!x.driverId?'Assign driver / rider':''):x.channel==='ride'?(x.status==='Created'?'Resume payment':''):x.status==='Accepted'&&!x.driverId?'Assign to driver':x.status==='Created'?'Resume payment':'',go:()=>onl?this.setState({assign:x.code,assignVeh:null}):x.status==='Created'?go('pay',{cur:x.code,waiting:false}):x.channel==='ride'?null:this.setState({assign:x.code})};});
+    const ash=s.assign?T.ship(db,s.assign):null,akg=ash?T.itemKg(ash):0,rec=T.vehFor(akg),selV=s.assignVeh||rec;
+    const allDr=db.users.filter(u=>u.role==='driver'&&u.status==='active');
+    const vehOpts=T.VEH.map(v=>{const n=allDr.filter(u=>u.vehicle===v.k).length,on=v.k===selV,ok=v.cap>=akg;return {l:v.k+(v.k===rec?' ★':''),s:(ok?'up to '+v.cap+' kg':'too small')+' · '+n,bg:on?'#075A36':'#fff',fg:on?'#fff':ok?'#17251B':'#8A968D',bd:on?'#075A36':'#E2E7E1',pick:()=>this.setState({assignVeh:v.k})};});
+    const asg={info:ash?(ash.kg?ash.kg+' kg (weighed)':'Customer estimate '+T.BANDS[ash.estBand||0].l)+' · recommended '+rec+'. Pick the vehicle, then the person.':''};
+    const drivers=allDr.filter(u=>u.vehicle===selV).sort((a,b)=>(b.onDuty?1:0)-(a.onDuty?1:0)).map(u=>({ini:u.name.split(' ').map(w=>w[0]).join('').slice(0,2),name:u.name,sub:(u.onDuty?'On duty':'Off duty')+' · '+(u.vehicle||'')+' · '+db.shipments.filter(x=>x.driverId===u.id&&!['Closed','Delivered','Cancelled'].includes(x.status)).length+' active jobs',plate:u.plate||'',bg:u.onDuty?'#3DBE72':'#E2E7E1',pick:()=>{T.update(x=>{const sh=T.ship(x,s.assign);sh.prevStatus=sh.status;sh.driverId=u.id;sh.acceptedAt=null;T.step(x,sh,'Assigned',nm,'officer','to '+u.name+' · '+(u.vehicle||'')+' '+(u.plate||'')+' · awaiting acceptance');if(sh.channel==='online')T.sms(x,sh.senderPhone,'TMO: '+nm+' assigned '+u.name+' ('+(u.vehicle||'')+') to your pickup '+sh.code+'. Waiting for them to accept.');T.sms(x,u.phone,'TMO Driver: New job '+sh.code+' — open TMO Driver to accept. Collect at '+(sh.pickup||sh.park)+' for '+T.dest(sh.dest).s+'.');});this.setState({assign:null});if(sc==='done')go('queue',{d:Object.assign({},BLANK)});}}));
     const mine=me?db.shipments.filter(x=>x.officerId===me.id&&x.createdAt>=today.getTime()):[];
     const pays=[].concat(...mine.map(x=>x.payments||[]));const by={};pays.forEach(p=>{const k=p.method.split(' ·')[0];by[k]=(by[k]||0)+p.amount;});
     const allChecks=s.scale&&s.pos&&s.checks.every(Boolean);
     return {
       pagePad:T.embed||T.device?'0':'40px 24px',showAside:!T.embed&&!T.device,fr:T.frame(),clock:T.time(Date.now()),
-      is:Object.fromEntries(['signin','activate','shift','queue','endshift'].concat(FLOW).map(k=>[k,sc===k])),err:s.err,
+      is:Object.fromEntries(['signin','activate','shift','queue','endshift','rideprice'].concat(FLOW).map(k=>[k,sc===k])),err:s.err,
       pinUi:PU,pinDots:[0,1,2,3].map(i=>i<s.pin.length?'#3DBE72':'transparent'),
       keys:['1','2','3','4','5','6','7','8','9','','0','⌫'].map(k=>({l:k,press:press(k),bg:k?'#22382A':'transparent'})),
       pinLinks:s.pinMode==='signin'?[{l:'Activate account',go:()=>go('activate',{pin:''})},{l:'Forgot PIN?',go:()=>{if(!T.userByPhone(db,s.phone,'officer'))return this.setState({err:'Enter your registered phone first'});this.setState({pinMode:'create',pin:'',err:''});}}]:[{l:'Cancel',go:()=>this.setState({pinMode:'signin',pin:'',err:''})},{l:'',go:()=>{}}],
       a:{name:s.name,phone:s.phone,invite:s.invite},
       on:{name:e=>this.setState({name:e.target.value}),phone:e=>this.setState({phone:e.target.value,err:''}),invite:e=>this.setState({invite:e.target.value.toUpperCase()}),
         kg:e=>this.set('kg',e.target.value.replace(/[^\d.]/g,'')),desc:e=>this.set('desc',e.target.value),seal:e=>this.set('seal',e.target.value),
-        sPhone:e=>{const v=e.target.value,u=T.userByPhone(db,v,'customer');this.setState({d:Object.assign({},s.d,{sPhone:v},u&&!s.d.sName?{sName:u.name}:{}),err:''});},sName:e=>this.set('sName',e.target.value),rName:e=>this.set('rName',e.target.value),rPhone:e=>this.set('rPhone',e.target.value),value:e=>this.set('value',e.target.value.replace(/\D/g,''))},
+        sPhone:e=>{const v=e.target.value,u=T.userByPhone(db,v,'customer');this.setState({d:Object.assign({},s.d,{sPhone:v},u&&!s.d.sName?{sName:u.name}:{}),err:''});},sName:e=>this.set('sName',e.target.value),rName:e=>this.set('rName',e.target.value),rPhone:e=>this.set('rPhone',e.target.value),value:e=>this.set('value',e.target.value.replace(/\D/g,'')),ridePrice:e=>this.setState({ridePrice:e.target.value.replace(/\D/g,''),err:''}),ridePhone:e=>this.setState({ridePhone:e.target.value,err:''})},
+      ridePrice:s.ridePrice||'',ridePhone:s.ridePhone||'',needRidePhone:!!cur&&cur.channel==='ride'&&s.method!=='POS'&&T.due(cur)>0,curRide:!!cur&&cur.channel==='ride',curNotRide:!(cur&&cur.channel==='ride'),
       toSignin:()=>go('signin',{pinMode:'signin'}),
       parks:T.PARKS.map((p,i)=>({l:p,pick:()=>this.setState({park:i}),bg:i===s.park?'#075A36':'#fff',fg:i===s.park?'#fff':'#17251B',bd:i===s.park?'#075A36':'#E2E7E1'})),
       invited:invitedU?(invitedU.status==='invited'?'Invite found: '+invitedU.name+' · '+invitedU.park:'This number already has an officer account — you’ll reset its PIN.'):'',
@@ -278,12 +300,12 @@ class Component extends DCLogic {
       shiftCta:{bg:allChecks?'#075A36':'#E2E7E1',fg:allChecks?'#fff':'#8A968D'},
       startShift:()=>{if(!allChecks)return;T.update(x=>{const u=T.user(x,me.id);u.onShift=true;T.log(x,u.name,'officer','started shift at '+u.park);});go('queue');},
       stats:[{l:'Today',v:parkShips.filter(x=>x.createdAt>=today.getTime()).length,c:'#fff'},{l:'Collected',v:T.fmt(pays.reduce((a,p)=>a+p.amount,0)),c:'#fff'},{l:'To assign',v:toAssign.length,c:'#F9D44B'}],
-      filters:[['assign','To assign ('+toAssign.length+')'],['unpaid','Unpaid ('+unpaid.length+')'],['all','All today']].map(f=>({l:f[1],go:()=>this.setState({filter:f[0]}),bg:s.filter===f[0]?'#17251B':'#fff',fg:s.filter===f[0]?'#fff':'#17251B',bd:s.filter===f[0]?'#17251B':'#E2E7E1'})),
+      filters:[['requests','Requests ('+requests.length+')'],['assign','To assign ('+toAssign.length+')'],['unpaid','Unpaid ('+unpaid.length+')'],['all','All today']].map(f=>({l:f[1],go:()=>this.setState({filter:f[0]}),bg:s.filter===f[0]?'#17251B':'#fff',fg:s.filter===f[0]?'#fff':'#17251B',bd:s.filter===f[0]?'#17251B':'#E2E7E1'})),
       queue,noQueue:queue.length===0,
       startNew:()=>go('type',{d:Object.assign({},BLANK),cur:null}),toEnd:()=>go('endshift'),toQueue:()=>go('queue'),
-      inFlow:FLOW.includes(sc),stepN:Math.min(5,FLOW.indexOf(sc)+1),stepTitle:TITLES[sc]||'',typeLabel:d.type==='ride'?'Passenger package':'Drop-off',isRide:d.type==='ride',
-      back:()=>{const i=FLOW.indexOf(sc);if(sc==='pay'||sc==='done'||i<=0)return go('queue');go(FLOW[i-1]);},
-      types:[{k:'ride',icon:'RIDE',l:'Passenger package',s:'Passenger travels with a chargeable item on the CMS bus. Fee is separate from the fare.',ib:'#F9D44B'},{k:'drop',icon:'DROP',l:'Drop-off shipment',s:'Sender leaves the package; it moves on an approved CMS vehicle.',ib:'#E6F6EC'}].map(t=>Object.assign(t,{pick:()=>this.set('type',t.k),bd:d.type===t.k?'#075A36':'transparent'})),
+      inFlow:FLOW.includes(sc)||sc==='rideprice',stepN:sc==='rideprice'?2:Math.min(5,FLOW.indexOf(sc)+1),stepTitle:TITLES[sc]||'',typeLabel:d.type==='ride'?'Passenger package':'Drop-off',isRide:d.type==='ride',
+      back:()=>{if(sc==='rideprice')return go('type');const i=FLOW.indexOf(sc);if(sc==='pay'||sc==='done'||i<=0)return go('queue');go(FLOW[i-1]);},
+      types:[{k:'ride',icon:'RIDE',l:'Passenger package',s:'Passenger travels with a chargeable item on the CMS bus. Fee is separate from the fare.',ib:'#F9D44B'},{k:'drop',icon:'DROP',l:'Drop-off shipment',s:'Sender leaves the package; it moves on an approved CMS vehicle.',ib:'#E6F6EC'}].map(t=>Object.assign(t,{pick:()=>t.k==='ride'?go('rideprice',{d:Object.assign({},BLANK,{type:'ride'}),cur:null,ridePrice:'',err:''}):this.set('type',t.k),bd:d.type===t.k?'#075A36':'transparent'})),
       d:{photo:d.photo,kg:d.kg,desc:d.desc,seal:d.seal,sPhone:d.sPhone,sName:d.sName,rName:d.rName,rPhone:d.rPhone,value:d.value},noPhoto:!d.photo,
       onPhoto:e=>{const f=e.target.files&&e.target.files[0];if(f)T.photo(f).then(u=>this.set('photo',u));},
       samplePhoto:()=>{const c=document.createElement('canvas');c.width=320;c.height=200;const x=c.getContext('2d');x.fillStyle='#C9A26B';x.fillRect(0,0,320,200);x.fillStyle='#A88350';x.fillRect(0,90,320,20);x.fillStyle='#fff';x.font='bold 16px sans-serif';x.fillText('SAMPLE PACKAGE · '+T.time(Date.now()),16,180);this.set('photo',c.toDataURL('image/jpeg',.7));},
@@ -296,7 +318,7 @@ class Component extends DCLogic {
       methods:[{id:'POS',icon:'POS',sub:'Card tap or insert · TMO-POS-03',ib:'#17251B',if:'#fff'},{id:'TMO Card',icon:'TMO',sub:sReg||(cur&&T.userByPhone(db,cur.senderPhone,'customer'))?'Sender’s card · deducts instantly':'Sender not registered',ib:'#075A36',if:'#fff'},{id:'Rider app',icon:'APP',sub:'Send request to sender’s TMO Rider',ib:'#FDF7D8',if:'#6B5300'}].map(m=>({icon:m.icon,name:m.id,sub:m.sub,ib:m.ib,if:m.if,op:1,bd:s.method===m.id?'#075A36':'transparent',pick:()=>this.setState({method:m.id,waiting:false,err:''})})),
       payState:due<=0&&cur?{bg:'#E6F6EC',fg:'#075A36',t:'Paid '+T.fmt(cur.paidAmount)+' · confirmed by provider'}:s.waiting?{bg:'#FDF7D8',fg:'#6B5300',t:s.method==='Rider app'?'Request sent — waiting for '+(cur?cur.senderName.split(' ')[0]:'sender')+' to pay in TMO Rider…':'Waiting for POS approval…'}:{bg:'#F4F6F3',fg:'#5C6B60',t:'Not yet paid · status Created'},
       cta,cta2,
-      assignOpen:!!s.assign,assignCode:s.assign||'',drivers,closeAssign:()=>this.setState({assign:null}),stop:e=>e.stopPropagation(),
+      vehOpts,asg,noDrivers:drivers.length===0,assignOpen:!!s.assign,assignCode:s.assign||'',drivers,closeAssign:()=>this.setState({assign:null}),stop:e=>e.stopPropagation(),
       endSum:{n:mine.length,total:T.fmt(pays.reduce((a,p)=>a+p.amount,0)),lines:Object.keys(by).length?Object.keys(by).map(k=>({k,v:T.fmt(by[k])})):[{k:'No collections yet',v:'—'}],...(toAssign.length?{t:toAssign.length+' paid shipment(s) still unassigned — they stay in the park queue for the next shift.',bg:'#FDF7D8',fg:'#6B5300'}:{t:'All paid shipments are assigned.',bg:'#E6F6EC',fg:'#075A36'})},
       endShift:()=>{T.update(x=>{const u=T.user(x,me.id);u.onShift=false;T.log(x,u.name,'officer','ended shift · '+mine.length+' shipments · '+T.fmt(pays.reduce((a,p)=>a+p.amount,0)));});T.setSession('officer',null);go('signin',{pinMode:'signin',pin:'',scale:false,pos:false,checks:[false,false,false]});}
     };
